@@ -1,0 +1,13 @@
+Input:/root/openface-data/video_2026-04-13_02-55-53.mp4
+Input full path:/root/openface-data/video_2026-04-13_02-55-53.mp4
+Camera parameters:947.917,947.917,360,640
+Output HOG:video_2026-04-13_02-55-53.hog
+Output video:video_2026-04-13_02-55-53.avi
+Output aligned directory:video_2026-04-13_02-55-53_aligned
+Output csv:video_2026-04-13_02-55-53.csv
+Gaze: 1
+AUs: 1
+Landmarks 2D: 1
+Landmarks 3D: 1
+Pose: 1
+Shape parameters: 1

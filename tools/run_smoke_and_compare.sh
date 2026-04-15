@@ -22,19 +22,9 @@ export DOCKERUSER DOCKERTAG DATA_MOUNT
 cd "${REPO_ROOT}"
 
 # Same path normalization as run_smoke.sh (Docker volume must match docker exec paths).
-if [[ "${DATA_MOUNT}" =~ ^[A-Za-z]: ]] || [[ "${DATA_MOUNT}" =~ ^[A-Za-z]:\\ ]]; then
-  if command -v cygpath >/dev/null 2>&1; then
-    DATA_MOUNT="$(cygpath -u "${DATA_MOUNT}")"
-    export DATA_MOUNT
-  elif command -v wslpath >/dev/null 2>&1; then
-    DATA_MOUNT="$(wslpath -u "${DATA_MOUNT}")"
-    export DATA_MOUNT
-  fi
-fi
-if [[ -d "${DATA_MOUNT}" ]]; then
-  DATA_MOUNT="$(cd "${DATA_MOUNT}" && (pwd -P 2>/dev/null || pwd))"
-  export DATA_MOUNT
-fi
+# shellcheck source=smoke_data_mount.sh
+source "${SCRIPT_DIR}/smoke_data_mount.sh"
+openface_normalize_data_mount "${SMOKE_DIR}"
 
 if [[ ! -d "${BASELINE_DIR}" ]]; then
   echo "ERROR: baseline directory missing: ${BASELINE_DIR}" >&2

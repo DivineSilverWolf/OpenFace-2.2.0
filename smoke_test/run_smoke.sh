@@ -7,7 +7,7 @@
 #   export PATH="/usr/bin:/bin:/usr/local/bin:$PATH"
 #   export DOCKERUSER=local DOCKERTAG=2.2.0
 #   export DATA_MOUNT="$(pwd)/smoke_test"   # or realpath to smoke_test
-#   DOCKER_BUILDKIT=0 docker compose build && docker compose up -d openface
+#   DOCKER_BUILDKIT=0 docker compose build && ./tools/smoke_docker_up.sh
 #   ./smoke_test/run_smoke.sh
 #
 # If the container was started with a different DATA_MOUNT, run: docker compose down && docker compose up -d openface
@@ -19,29 +19,29 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SMOKE_TS="${SMOKE_TS:-2026-04-13_02-55-53}"
 
+# shellcheck source=../tools/smoke_data_mount.sh
+source "${REPO_ROOT}/tools/smoke_data_mount.sh"
 if [[ -z "${DATA_MOUNT:-}" ]]; then
-  export DATA_MOUNT="${SCRIPT_DIR}"
-  echo "DATA_MOUNT not set; using ${DATA_MOUNT}" >&2
+  echo "DATA_MOUNT not set; using ${SCRIPT_DIR}" >&2
 fi
-
-# Windows Git Bash / cmd: turn "C:\..." into a path Docker Linux can bind consistently.
-if [[ "${DATA_MOUNT}" =~ ^[A-Za-z]: ]] || [[ "${DATA_MOUNT}" =~ ^[A-Za-z]:\\ ]]; then
-  if command -v cygpath >/dev/null 2>&1; then
-    DATA_MOUNT="$(cygpath -u "${DATA_MOUNT}")"
-    export DATA_MOUNT
-  elif command -v wslpath >/dev/null 2>&1; then
-    DATA_MOUNT="$(wslpath -u "${DATA_MOUNT}")"
-    export DATA_MOUNT
-  fi
-fi
-
-# Absolute path so docker compose volume source matches paths passed to docker exec.
-if [[ -d "${DATA_MOUNT}" ]]; then
-  DATA_MOUNT="$(cd "${DATA_MOUNT}" && (pwd -P 2>/dev/null || pwd))"
-  export DATA_MOUNT
-fi
+openface_normalize_data_mount "${SCRIPT_DIR}"
 
 cd "${REPO_ROOT}"
+
+# Fail fast if container exists with a different DATA_MOUNT than this run.
+# This avoids hard-to-debug "file not found" inside docker exec.
+if docker ps --format '{{.Names}}' | awk '$0=="openface"{found=1} END{exit found?0:1}'; then
+  CONTAINER_DATA_MOUNT="$(docker exec openface sh -lc 'printf "%s" "${DATA_MOUNT:-}"' 2>/dev/null || true)"
+  if [[ -n "${CONTAINER_DATA_MOUNT}" ]] && [[ "${CONTAINER_DATA_MOUNT}" != "${DATA_MOUNT}" ]]; then
+    echo "ERROR: DATA_MOUNT mismatch." >&2
+    echo "  script DATA_MOUNT:    ${DATA_MOUNT}" >&2
+    echo "  container DATA_MOUNT: ${CONTAINER_DATA_MOUNT}" >&2
+    echo "Recreate container with current mount:" >&2
+    echo "  ./tools/smoke_docker_up.sh" >&2
+    echo "  # or: docker compose up -d --force-recreate openface  (after normalizing DATA_MOUNT)" >&2
+    exit 1
+  fi
+fi
 
 for i in 1 2 3 4 5 6; do
   img_path="${DATA_MOUNT}/data/img${i}_${SMOKE_TS}.jpg"

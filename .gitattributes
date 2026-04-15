@@ -1,0 +1,5 @@
+# Shell scripts must use LF so WSL/Linux/Docker can run them (avoid bash\r shebang).
+smoke_test/*.sh text eol=lf
+tools/*.sh text eol=lf
+tools/**/*.sh text eol=lf
+tools/regression/*.sh text eol=lf

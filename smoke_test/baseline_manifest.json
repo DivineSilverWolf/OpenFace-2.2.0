@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "description": "Smoke regression baseline manifest.",
+  "patterns": [
+    "**/*.csv",
+    "**/*.hog",
+    "**/*_of_details.txt"
+  ],
+  "sha256": {}
+}

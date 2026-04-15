@@ -15,7 +15,7 @@ This document describes a reproducible smoke regression workflow from zero.
 
 `./tools/run_smoke_and_compare.sh` is not just "compare"; it also does:
 
-1. normalizes `DATA_MOUNT` path (Windows path -> Linux mount path when needed);
+1. normalizes `DATA_MOUNT` via `tools/smoke_data_mount.sh` (Windows-style path → path Docker accepts, when `cygpath`/`wslpath` is available);
 2. validates that baseline exists and contains regression files;
 3. validates `ACTUAL_DIR != BASELINE_DIR`;
 4. cleans `smoke_test/output/img` and `smoke_test/output/video`;
@@ -33,9 +33,16 @@ Use existing `smoke_test/data/` inputs to generate a golden run and then freeze 
 1) Build/start container and run smoke once (writes to `smoke_test/output/`):
 
 ```bash
-docker compose up -d --force-recreate openface
+export DATA_MOUNT="$(pwd)/smoke_test"
+./tools/smoke_docker_up.sh
 ./smoke_test/run_smoke.sh
 ```
+
+`DATA_MOUNT` must be the same when the container is created and when `run_smoke.sh` runs. Using `./tools/smoke_docker_up.sh` (instead of raw `docker compose up`) applies the same path normalization as `run_smoke.sh`, which avoids **invalid volume specification** when the shell accidentally passes a `C:\...` path (for example PowerShell expanding `$(pwd)` before bash).
+
+If they still differ (for example, compose was started with a different `.env` value), `run_smoke.sh` fails fast with a clear mismatch error.
+
+More detail (including PowerShell + WSL): `docs/SETUP_WINDOWS11_WSL2.md`.
 
 2) Snapshot `output/` into baseline:
 

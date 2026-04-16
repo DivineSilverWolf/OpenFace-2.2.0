@@ -53,7 +53,18 @@ When outputs change intentionally (toolchain, model, or OpenFace behavior), rege
 
 The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`).
 
-**Why CI manifest is `*_of_details.txt` only:** dense per-frame `*.csv` outputs (landmarks, pose, AU, gaze) can differ by far more than `1e-5` across **different** `ubuntu-latest` hosts even with the same container image and `OPENBLAS_NUM_THREADS=1` — that is runner-pool / CPU math variability, not necessarily a broken build. Summary `*_of_details.txt` files have been stable across runners in practice. For full numeric CSV (+ `.hog`) regression, use `smoke_test/baseline_manifest.json` locally or `./tools/run_smoke_compare_local_baseline.sh` against `baseline_output_local/`. For why **loosening `ABS_TOL` alone** does not rescue full-CSV compare on CI, see [Tolerance knob (ABS_TOL)](#tolerance-knob-abstol) under [Comparison modes](#comparison-modes).
+### Why `*.csv` was removed from the GitHub Actions compare
+
+The Docker smoke job **already proves** that the image builds, the container starts, and OpenFace runs end-to-end on `smoke_test/data/` (images + short videos). The fragile part was the **next** step: treating dense **`*.csv`** as a byte-stable or `1e-5`-stable contract **across different machines in the `ubuntu-latest` pool**.
+
+In practice we saw:
+
+- **Smoke logs green** (models load, tracking runs, files written), but **compare red** on `*.csv` only: thousands of numeric tokens differed, with **`max_abs` far above `1e-5`** (including on video), even after refreshing the committed baseline from a **Smoke baseline capture** artifact produced on GitHub. So the failure was not “baseline forgot to update”, but **run-to-run / runner-to-runner numeric drift** on the same workflow image.
+- **`*_of_details.txt` still passed** the same tolerant compare in those failures: the summary side of the run stayed aligned within `ABS_TOL` while the huge per-frame CSV streams did not.
+
+Keeping **`*.csv`** in `baseline_manifest_ci.json` would therefore mean either **constant false reds** on CI, or **raising `ABS_TOL` to huge values** so that the gate stops meaning anything for mixed-scale columns (see [Tolerance knob (ABS_TOL)](#tolerance-knob-abstol)).
+
+**Current CI contract:** `tools/regression/baseline_manifest_ci.json` lists **`**/*_of_details.txt` only** — CI still enforces a **numeric regression** on those summary files, which has been stable across runners, while the full **`*.csv` (+ `.hog` if desired)** regression remains **local**: `smoke_test/baseline_manifest.json`, `./tools/run_smoke_compare_local_baseline.sh`, and/or `smoke_test/baseline_output_local/` (see [Dual baseline](#dual-baseline-ci-vs-local-machine)).
 
 A baseline captured on a **different** machine than the one that produced `baseline_output/` can still fail locally on CSV strict/tolerant checks; refresh the committed baseline from a GA artifact when you intentionally change outputs (see below).
 

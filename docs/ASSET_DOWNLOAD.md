@@ -108,6 +108,26 @@ pwsh -NoProfile -File .\tests\asset_download_uri.tests.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\asset_download_uri.tests.ps1
 ```
 
+**AST parse** (no execution) for the download scripts and the shared helper:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_parse.tests.ps1
+```
+
+## Integration test (network required)
+
+Prefer running **AST parse** first (fast): `tests/download_assets_parse.tests.ps1` (see above).
+
+To verify **`download_models.ps1`** and **`download_libraries.ps1`** end-to-end against real URLs, use the isolated workspace under **`tests/download_assets_integration/workdir/`** (created fresh each run, **gitignored**):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_integration\Run-DownloadAssetsIntegration.ps1
+```
+
+Details and options: **`tests/download_assets_integration/README.md`**.
+
+Expect **several minutes** and **hundreds of MB** traffic (models from Dropbox). The script is **not** part of Linux Docker CI by default.
+
 ## Behaviour vs legacy scripts
 
 - Same **destination paths** and **Dropbox / OneDrive URLs** as before.  

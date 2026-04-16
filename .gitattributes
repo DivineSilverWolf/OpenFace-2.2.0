@@ -5,6 +5,7 @@ tools/**/*.sh text eol=lf
 tools/regression/*.sh text eol=lf
 tools/**/*.ps1 text eol=lf
 tests/*.ps1 text eol=lf
+tests/**/*.ps1 text eol=lf
 download_models.ps1 text eol=lf
 download_libraries.ps1 text eol=lf
 

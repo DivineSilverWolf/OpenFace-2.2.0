@@ -53,7 +53,7 @@ When outputs change intentionally (toolchain, model, or OpenFace behavior), rege
 
 The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`).
 
-**Why CI manifest is `*_of_details.txt` only:** dense per-frame `*.csv` outputs (landmarks, pose, AU, gaze) can differ by far more than `1e-5` across **different** `ubuntu-latest` hosts even with the same container image and `OPENBLAS_NUM_THREADS=1` — that is runner-pool / CPU math variability, not necessarily a broken build. Summary `*_of_details.txt` files have been stable across runners in practice. For full numeric CSV (+ `.hog`) regression, use `smoke_test/baseline_manifest.json` locally or `./tools/run_smoke_compare_local_baseline.sh` against `baseline_output_local/`.
+**Why CI manifest is `*_of_details.txt` only:** dense per-frame `*.csv` outputs (landmarks, pose, AU, gaze) can differ by far more than `1e-5` across **different** `ubuntu-latest` hosts even with the same container image and `OPENBLAS_NUM_THREADS=1` — that is runner-pool / CPU math variability, not necessarily a broken build. Summary `*_of_details.txt` files have been stable across runners in practice. For full numeric CSV (+ `.hog`) regression, use `smoke_test/baseline_manifest.json` locally or `./tools/run_smoke_compare_local_baseline.sh` against `baseline_output_local/`. For why **loosening `ABS_TOL` alone** does not rescue full-CSV compare on CI, see [Tolerance knob (ABS_TOL)](#tolerance-knob-abstol) under [Comparison modes](#comparison-modes).
 
 A baseline captured on a **different** machine than the one that produced `baseline_output/` can still fail locally on CSV strict/tolerant checks; refresh the committed baseline from a GA artifact when you intentionally change outputs (see below).
 
@@ -184,6 +184,20 @@ MODE=tolerant ABS_TOL=1e-6 ./tools/run_smoke_and_compare.sh
 In tolerant mode:
 - `.csv` and `*_of_details.txt` are compared numerically with `abs(a-b) <= ABS_TOL`.
 - `.hog` remains strict (binary file).
+
+### Tolerance knob (ABS_TOL)
+
+`compare_smoke_outputs.py` in tolerant mode walks each file, extracts **every numeric token** (integers and floats) in **file order**, pairs them with the baseline token stream, and requires `abs(actual - baseline) <= ABS_TOL` (with a paired NaN exception). There is **one** threshold for **all** tokens in that file — no per-column logic. The environment variable `ABS_TOL` is passed through from `run_smoke_and_compare.sh` to `compare_smoke_outputs.py --abs-tol` (GitHub Actions sets it in `.github/workflows/ci.yml`).
+
+**When raising `ABS_TOL` helps:** tiny platform drift (for example `1e-6` vs `1e-5` vs `1e-4`) on **small-magnitude** numbers, or on summary files where all quantities stay in a similar range.
+
+**When a larger `ABS_TOL` is a poor fix for full `FeatureExtraction` / `FaceLandmarkImg` CSV:** those CSVs mix **very different scales** in one stream (for example AU-like values near 0…1, pixel coordinates in the hundreds, pose translation in hundreds or more). A single absolute tolerance either stays tight and **fails on large columns** when runners differ slightly, or becomes huge and **stops protecting small columns** (you accept large silent errors in AU-like fields).
+
+Empirically, on **GitHub-hosted `ubuntu-latest`**, two runs with the **same** Docker image can still yield **large** `max_abs` on dense CSV (for example order **1** on still images and **10+** on video rows) because of **runner / CPU / math library variability**, not necessarily because smoke is broken.
+
+**Policy in this repository:** CI uses `tools/regression/baseline_manifest_ci.json`, which compares **`*_of_details.txt` only** with `ABS_TOL=1e-5` (see `.github/workflows/ci.yml`). That keeps the gate meaningful across the runner pool. **Full CSV (+ optional `.hog`) regression** stays a **local** concern: use `smoke_test/baseline_manifest.json` and/or `./tools/run_smoke_compare_local_baseline.sh` against `smoke_test/baseline_output_local/` (see [Dual baseline](#dual-baseline-ci-vs-local-machine) above).
+
+**If CI ever flakes on `*_of_details.txt` only:** increase `ABS_TOL` in small steps (for example `1e-4`, then `1e-3`) in `ci.yml` and mirror the same values when you run the optional local sanity command in [CI-aligned baseline](#ci-aligned-baseline-ubuntu-latest). Do **not** expect a single larger `ABS_TOL` to make dense per-frame CSV reliable on CI without also changing compare logic (for example column-aware or relative tolerance — not implemented today).
 
 ## `baseline_manifest.json`: what it is and how to use it
 

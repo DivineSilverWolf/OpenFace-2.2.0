@@ -24,6 +24,36 @@ When outputs change intentionally (toolchain, model, or OpenFace behavior), rege
 
 **Drift note:** if the repository still tracks a large `smoke_test/output/` tree for convenience, its regression files can get out of date versus what the current Docker image produces. The gate compares **fresh** `output/` from `run_smoke.sh` against `baseline_output/`. After refreshing the baseline, run `./tools/run_smoke_and_compare.sh` once to confirm strict mode passes before committing.
 
+## CI-aligned baseline (`ubuntu-latest`)
+
+The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`). A baseline captured on a **different** machine (for example only your WSL laptop) can still **fail on `ubuntu-latest`**, because smoke CSVs and `*_of_details.txt` can differ in numeric token counts and in many coordinates when the runner stack differs.
+
+**Preferred refresh when CI compare fails but the pipeline is correct:** treat the GitHub-hosted runner as the source of truth for the committed baseline.
+
+1. In the GitHub UI, run the manual workflow **Smoke baseline capture** (`.github/workflows/smoke-baseline-artifact.yml`). It builds the same Docker image as CI, starts `openface`, runs `./smoke_test/run_smoke.sh`, and uploads an artifact named `smoke-output-for-baseline` containing the `smoke_test/output/` tree (`img/`, `video/` at the zip root).
+
+2. Download and unzip the artifact locally.
+
+3. From the repository root, apply it to the git-oriented baseline (copies only `*.csv`, `*.hog`, `*_of_details.txt` into `smoke_test/baseline_output/`):
+
+```bash
+./tools/regression/refresh_git_baseline_from_ci_output.sh /path/to/unzipped/dir
+```
+
+   Equivalent: `SRC=/path/to/unzipped/dir ./tools/regression/sync_smoke_baseline_git.sh`
+
+4. Review `git diff smoke_test/baseline_output`, then commit the updated files.
+
+5. Optional local sanity check using the **same** compare settings as CI:
+
+```bash
+export MODE=tolerant ABS_TOL=1e-5
+export MANIFEST="$(pwd)/tools/regression/baseline_manifest_ci.json"
+./tools/run_smoke_and_compare.sh
+```
+
+   A pass on your machine is not guaranteed after a CI-only baseline refresh (your Docker host may still differ slightly), but **GitHub Actions** should go green once the baseline matches the runner that produced the artifact.
+
 ## What happens before compare (important)
 
 `./tools/run_smoke_and_compare.sh` is not just "compare"; it also does:

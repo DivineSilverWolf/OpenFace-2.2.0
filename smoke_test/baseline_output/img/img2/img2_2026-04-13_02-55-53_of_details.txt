@@ -1,0 +1,13 @@
+Input:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/img2_2026-04-13_02-55-53.jpg
+Input full path:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/img2_2026-04-13_02-55-53.jpg
+Camera parameters:1042.06,1042.06,480.5,640
+Output HOG:img2_2026-04-13_02-55-53.hog
+Output image:img2_2026-04-13_02-55-53.jpg
+Output aligned directory:img2_2026-04-13_02-55-53_aligned
+Output csv:img2_2026-04-13_02-55-53.csv
+Gaze: 1
+AUs: 1
+Landmarks 2D: 1
+Landmarks 3D: 1
+Pose: 1
+Shape parameters: 1

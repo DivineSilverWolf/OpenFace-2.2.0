@@ -11,6 +11,19 @@ This document describes a reproducible smoke regression workflow from zero.
 `tools/run_smoke_and_compare.sh` always cleans `smoke_test/output/{img,video}` before a run.  
 `smoke_test/baseline_output/` is not touched by this script.
 
+## Baseline in git and CI (preferred policy)
+
+Regression compares only the file kinds under `smoke_test/baseline_manifest.json` (today: `*.csv`, `*.hog`, `*_of_details.txt`). Those are enough for `compare_smoke_outputs.py`; aligned bitmaps, preview images, and rendered videos are **not** part of the regression gate.
+
+**Preferred approach:** keep a **lean** `smoke_test/baseline_output/` in the repository (paths mirror `output/`, but only the compared artifacts). This gives reproducible GitHub Actions without external downloads and avoids committing large media trees.
+
+- **Full local snapshot** (everything under `output/`, for human inspection): `./tools/regression/bootstrap_smoke_baseline.sh`
+- **Git- and CI-sized baseline** (compared files only): `./tools/regression/sync_smoke_baseline_git.sh` after a golden `./smoke_test/run_smoke.sh`
+
+When outputs change intentionally (toolchain, model, or OpenFace behavior), regenerate smoke output, run `sync_smoke_baseline_git.sh`, and commit the updated `smoke_test/baseline_output/`.
+
+**Drift note:** if the repository still tracks a large `smoke_test/output/` tree for convenience, its regression files can get out of date versus what the current Docker image produces. The gate compares **fresh** `output/` from `run_smoke.sh` against `baseline_output/`. After refreshing the baseline, run `./tools/run_smoke_and_compare.sh` once to confirm strict mode passes before committing.
+
 ## What happens before compare (important)
 
 `./tools/run_smoke_and_compare.sh` is not just "compare"; it also does:
@@ -56,7 +69,9 @@ If you need to refresh baseline intentionally (for example after toolchain/build
 FORCE=1 ./tools/regression/bootstrap_smoke_baseline.sh
 ```
 
-`bootstrap_smoke_baseline.sh` copies only files from the current `output/` tree to `baseline_output/`.
+`bootstrap_smoke_baseline.sh` copies the entire current `output/` tree to `baseline_output/` (large; useful locally).
+
+For commits and CI, prefer `./tools/regression/sync_smoke_baseline_git.sh` instead (see [Baseline in git and CI](#baseline-in-git-and-ci-preferred-policy)).
 
 ## Step 1: Make your code changes
 
@@ -83,7 +98,7 @@ If `smoke_test/baseline_output/` is empty, the first run fails fast with:
 
 This is expected. The correct flow is:
 
-1) create baseline from `smoke_test/data/` via `run_smoke.sh` + `bootstrap_smoke_baseline.sh`;
+1) create baseline from `smoke_test/data/` via `run_smoke.sh`, then either `bootstrap_smoke_baseline.sh` (full tree) or `sync_smoke_baseline_git.sh` (compared files only, for git/CI);
 2) make changes;
 3) run `run_smoke_and_compare.sh`.
 

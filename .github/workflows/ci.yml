@@ -1,0 +1,39 @@
+# Docker smoke gate: build image, start OpenFace container, run smoke + regression compare.
+# Expects a lean tracked baseline under smoke_test/baseline_output/ (see docs/BASELINE_AND_REGRESSION.md).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker-smoke:
+    name: Docker smoke gate
+    runs-on: ubuntu-latest
+    env:
+      DOCKERUSER: local
+      DOCKERTAG: "2.2.0"
+      DATA_MOUNT: ${{ github.workspace }}/smoke_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make smoke scripts executable
+        run: chmod +x tools/run_smoke_and_compare.sh smoke_test/run_smoke.sh
+
+      - name: Docker Compose build
+        run: DOCKER_BUILDKIT=0 docker compose build
+
+      - name: Docker Compose up (openface)
+        run: docker compose up -d openface
+
+      - name: Smoke + baseline compare
+        run: bash ./tools/run_smoke_and_compare.sh
+
+      - name: Upload smoke output (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-output
+          path: smoke_test/output/
+          if-no-files-found: warn

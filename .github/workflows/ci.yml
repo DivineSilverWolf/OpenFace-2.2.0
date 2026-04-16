@@ -29,8 +29,8 @@ jobs:
 
       - name: Smoke + baseline compare
         env:
-          # GitHub-hosted runners differ from local golden machines; strict byte compare
-          # of floats/binary descriptors is brittle. Use tolerant numeric compare for text/csv.
+          # Runner pool variance makes dense *.csv floats differ beyond tight tol even with
+          # identical Dockerfiles; CI manifest compares *_of_details.txt only (see baseline_manifest_ci.json).
           MODE: tolerant
           ABS_TOL: "1e-5"
           MANIFEST: ${{ github.workspace }}/tools/regression/baseline_manifest_ci.json

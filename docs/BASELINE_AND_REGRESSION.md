@@ -5,7 +5,7 @@ This document describes a reproducible smoke regression workflow from zero.
 ## Roles of directories
 
 - `smoke_test/data/` - source inputs for smoke (images/videos).
-- `smoke_test/baseline_output/` - **CI / git baseline:** lean regression files committed to the repository; must match what GitHub Actions compares (see `baseline_manifest_ci.json` in `.github/workflows/ci.yml`).
+- `smoke_test/baseline_output/` - **CI / git baseline:** lean regression files committed to the repository; GitHub Actions compares a **subset** via `tools/regression/baseline_manifest_ci.json` (currently `*_of_details.txt` only; see docs below).
 - `smoke_test/baseline_output_local/` - **machine-local golden:** same layout as `baseline_output/`, but **not committed** (see `.gitignore`). Used to compare a fresh smoke run against outputs produced on **your** hardware without overwriting the CI baseline.
 - `smoke_test/output/` - outputs of the current run under test.
 - `smoke-output-for-baseline/` (optional, repo root) - unpacked artifact from workflow **Smoke baseline capture**; **gitignored** so heavy media is never committed.
@@ -51,7 +51,11 @@ When outputs change intentionally (toolchain, model, or OpenFace behavior), rege
 
 ## CI-aligned baseline (`ubuntu-latest`)
 
-The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`). A baseline captured on a **different** machine (for example only your WSL laptop) can still **fail on `ubuntu-latest`**, because smoke CSVs and `*_of_details.txt` can differ in numeric token counts and in many coordinates when the runner stack differs.
+The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`).
+
+**Why CI manifest is `*_of_details.txt` only:** dense per-frame `*.csv` outputs (landmarks, pose, AU, gaze) can differ by far more than `1e-5` across **different** `ubuntu-latest` hosts even with the same container image and `OPENBLAS_NUM_THREADS=1` — that is runner-pool / CPU math variability, not necessarily a broken build. Summary `*_of_details.txt` files have been stable across runners in practice. For full numeric CSV (+ `.hog`) regression, use `smoke_test/baseline_manifest.json` locally or `./tools/run_smoke_compare_local_baseline.sh` against `baseline_output_local/`.
+
+A baseline captured on a **different** machine than the one that produced `baseline_output/` can still fail locally on CSV strict/tolerant checks; refresh the committed baseline from a GA artifact when you intentionally change outputs (see below).
 
 **Preferred refresh when CI compare fails but the pipeline is correct:** treat the GitHub-hosted runner as the source of truth for the committed baseline.
 

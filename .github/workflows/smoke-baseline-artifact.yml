@@ -1,15 +1,13 @@
 # Build the same Docker image as CI, run smoke only (no baseline compare),
 # upload smoke_test/output/ so you can refresh smoke_test/baseline_output/ for ubuntu-latest.
 #
-# workflow_dispatch: run from Actions when the file exists on the default branch.
-# push (reengineering): so the workflow is visible and runs on feature branch without merging to main.
+# Manual only (workflow_dispatch): avoids a second full Docker build on every push; use when
+# you need a fresh runner artifact. The workflow file must be on the default branch for the
+# "Run workflow" button to appear in the GitHub UI.
 name: Smoke baseline capture
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - reengineering
 
 jobs:
   capture-smoke-output:

@@ -1,5 +1,5 @@
-Input:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/video2_2026-04-13_02-55-53.mp4
-Input full path:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/video2_2026-04-13_02-55-53.mp4
+Input:/home/runner/work/OpenFace-2.2.0/OpenFace-2.2.0/smoke_test/data/video2_2026-04-13_02-55-53.mp4
+Input full path:/home/runner/work/OpenFace-2.2.0/OpenFace-2.2.0/smoke_test/data/video2_2026-04-13_02-55-53.mp4
 Camera parameters:875,875,640,360
 Output HOG:video2_2026-04-13_02-55-53.hog
 Output video:video2_2026-04-13_02-55-53.avi

@@ -1,5 +1,5 @@
-Input:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/img5_2026-04-13_02-55-53.jpg
-Input full path:/mnt/c/Users/Vlad/VladFolder/vscode_proj/OpenFace-2.2.0/smoke_test/data/img5_2026-04-13_02-55-53.jpg
+Input:/home/runner/work/OpenFace-2.2.0/OpenFace-2.2.0/smoke_test/data/img5_2026-04-13_02-55-53.jpg
+Input full path:/home/runner/work/OpenFace-2.2.0/OpenFace-2.2.0/smoke_test/data/img5_2026-04-13_02-55-53.jpg
 Camera parameters:1042.06,1042.06,480.5,640
 Output HOG:img5_2026-04-13_02-55-53.hog
 Output image:img5_2026-04-13_02-55-53.jpg

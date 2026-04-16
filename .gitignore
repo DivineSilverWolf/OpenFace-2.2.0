@@ -113,6 +113,12 @@ smoke_test/data/*.png
 smoke_test/data/*.mp4
 smoke_test/data/*.avi
 
+# Machine-local smoke golden (not committed; CI uses smoke_test/baseline_output/)
+smoke_test/baseline_output_local/
+
+# Unpacked GitHub Actions artifact used to refresh CI baseline (heavy; optional location)
+smoke-output-for-baseline/
+
 # Smoke test generated outputs (layout and scripts under smoke_test/ are tracked)
 smoke_test/output/**/*.csv
 smoke_test/output/**/*.hog

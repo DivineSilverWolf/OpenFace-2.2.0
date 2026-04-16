@@ -5,17 +5,42 @@ This document describes a reproducible smoke regression workflow from zero.
 ## Roles of directories
 
 - `smoke_test/data/` - source inputs for smoke (images/videos).
-- `smoke_test/baseline_output/` - frozen reference outputs used as baseline.
+- `smoke_test/baseline_output/` - **CI / git baseline:** lean regression files committed to the repository; must match what GitHub Actions compares (see `baseline_manifest_ci.json` in `.github/workflows/ci.yml`).
+- `smoke_test/baseline_output_local/` - **machine-local golden:** same layout as `baseline_output/`, but **not committed** (see `.gitignore`). Used to compare a fresh smoke run against outputs produced on **your** hardware without overwriting the CI baseline.
 - `smoke_test/output/` - outputs of the current run under test.
+- `smoke-output-for-baseline/` (optional, repo root) - unpacked artifact from workflow **Smoke baseline capture**; **gitignored** so heavy media is never committed.
 
 `tools/run_smoke_and_compare.sh` always cleans `smoke_test/output/{img,video}` before a run.  
-`smoke_test/baseline_output/` is not touched by this script.
+`smoke_test/baseline_output/` and `smoke_test/baseline_output_local/` are not modified by that script (only read for compare).
 
 ## Baseline in git and CI (preferred policy)
 
 Regression compares only the file kinds under `smoke_test/baseline_manifest.json` (today: `*.csv`, `*.hog`, `*_of_details.txt`). Those are enough for `compare_smoke_outputs.py`; aligned bitmaps, preview images, and rendered videos are **not** part of the regression gate.
 
 **Preferred approach:** keep a **lean** `smoke_test/baseline_output/` in the repository (paths mirror `output/`, but only the compared artifacts). This gives reproducible GitHub Actions without external downloads and avoids committing large media trees.
+
+### Dual baseline (CI vs local machine)
+
+| Path | Purpose | In git |
+|------|---------|--------|
+| `smoke_test/baseline_output/` | Gate for **merge / GitHub Actions** (aligned with `ubuntu-latest` capture when refreshed) | yes (lean) |
+| `smoke_test/baseline_output_local/` | Optional **developer golden** on your CPU/Docker host | no |
+
+- **Same gate as CI locally:** `./tools/run_smoke_and_compare.sh` with the same `MODE`, `MANIFEST`, and `ABS_TOL` as `.github/workflows/ci.yml` (defaults target `baseline_output/`).
+- **Compare against your saved golden:** `./tools/run_smoke_compare_local_baseline.sh` (defaults: `BASELINE_DIR=smoke_test/baseline_output_local`, full `baseline_manifest.json`, tolerant). Refresh local golden after a good local run:
+
+```bash
+SRC=smoke_test/output DST=smoke_test/baseline_output_local ./tools/regression/sync_smoke_baseline_git.sh
+```
+
+When ingesting a CI artifact into `baseline_output/`, snapshot the **previous** lean baseline into `baseline_output_local/` first if you still want that machine as reference:
+
+```bash
+SRC=smoke_test/baseline_output DST=smoke_test/baseline_output_local ./tools/regression/sync_smoke_baseline_git.sh
+SRC=smoke-output-for-baseline DST=smoke_test/baseline_output ./tools/regression/sync_smoke_baseline_git.sh
+```
+
+(Or use `./tools/regression/refresh_git_baseline_from_ci_output.sh` for the second line only.)
 
 - **Full local snapshot** (everything under `output/`, for human inspection): `./tools/regression/bootstrap_smoke_baseline.sh`
 - **Git- and CI-sized baseline** (compared files only): `./tools/regression/sync_smoke_baseline_git.sh` after a golden `./smoke_test/run_smoke.sh`
@@ -38,6 +63,8 @@ The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions u
 
 ```bash
 ./tools/regression/refresh_git_baseline_from_ci_output.sh /path/to/unzipped/dir
+# If the artifact is unpacked at repo root as ./smoke-output-for-baseline/ (gitignored):
+#   SRC=smoke-output-for-baseline DST=smoke_test/baseline_output ./tools/regression/sync_smoke_baseline_git.sh
 ```
 
    Equivalent: `SRC=/path/to/unzipped/dir ./tools/regression/sync_smoke_baseline_git.sh`

@@ -23,9 +23,21 @@ LABEL maintainer="Michael McDermott <mikemcdermott23@gmail.com>"
 ARG DEBIAN_FRONTEND=noninteractive
 
 # todo: minimize this even more
-RUN apt-get update -qq &&\
-    apt-get install -qq curl &&\
-    apt-get install -qq --no-install-recommends \
+RUN apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        update -qq &&\
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq curl &&\
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq --no-install-recommends \
         libopenblas-dev liblapack-dev \
         libavcodec-dev libavformat-dev libswscale-dev \
         libtbb2 libtbb-dev libjpeg-dev \
@@ -42,7 +54,16 @@ FROM ubuntu_base as cv_deps
 WORKDIR /root/build-dep
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -qq -y \
+RUN apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        update -qq && \
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq -y \
         cmake ninja-build pkg-config build-essential checkinstall\
         g++-8 &&\
     rm -rf /var/lib/apt/lists/* &&\

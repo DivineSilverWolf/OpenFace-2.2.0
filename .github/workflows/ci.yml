@@ -28,6 +28,12 @@ jobs:
         run: docker compose up -d openface
 
       - name: Smoke + baseline compare
+        env:
+          # GitHub-hosted runners differ from local golden machines; strict byte compare
+          # of floats/binary descriptors is brittle. Use tolerant numeric compare for text/csv.
+          MODE: tolerant
+          ABS_TOL: "1e-5"
+          MANIFEST: ${{ github.workspace }}/tools/regression/baseline_manifest_ci.json
         run: bash ./tools/run_smoke_and_compare.sh
 
       - name: Upload smoke output (on failure)

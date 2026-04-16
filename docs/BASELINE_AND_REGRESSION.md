@@ -30,9 +30,9 @@ The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions u
 
 **Preferred refresh when CI compare fails but the pipeline is correct:** treat the GitHub-hosted runner as the source of truth for the committed baseline.
 
-1. In the GitHub UI, run the manual workflow **Smoke baseline capture** (`.github/workflows/smoke-baseline-artifact.yml`). It builds the same Docker image as CI, starts `openface`, runs `./smoke_test/run_smoke.sh`, and uploads an artifact named `smoke-output-for-baseline` containing the `smoke_test/output/` tree (`img/`, `video/` at the zip root).
+1. Get a finished **Smoke baseline capture** run on GitHub (`.github/workflows/smoke-baseline-artifact.yml`). On branch `reengineering` it also runs automatically on **push** to that branch, so the workflow appears in the Actions list like **CI**. It builds the same Docker image as CI, starts `openface`, runs `./smoke_test/run_smoke.sh`, and uploads an artifact named **`smoke-output-for-baseline`** with the `smoke_test/output/` tree (`img/`, `video/` at the zip root). You can still use **Run workflow** when GitHub shows it for your default branch.
 
-2. Download and unzip the artifact locally.
+2. **Download the artifact:** open the successful workflow run → scroll to **Artifacts** at the bottom of the summary page → click **`smoke-output-for-baseline`** (downloads a zip). Unzip locally; you should see top-level folders `img/` and `video/`.
 
 3. From the repository root, apply it to the git-oriented baseline (copies only `*.csv`, `*.hog`, `*_of_details.txt` into `smoke_test/baseline_output/`):
 

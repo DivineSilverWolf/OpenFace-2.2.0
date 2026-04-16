@@ -41,10 +41,10 @@ RUN apt-get \
 FROM ubuntu_base as model_data
 WORKDIR /data/patch_experts
 
-RUN curl -fsSL -o cen_patches_0.25_of.dat https://www.dropbox.com/s/7na5qsjzz8yfoer/cen_patches_0.25_of.dat &&\
-    curl -fsSL -o cen_patches_0.35_of.dat https://www.dropbox.com/s/k7bj804cyiu474t/cen_patches_0.35_of.dat &&\
-    curl -fsSL -o cen_patches_0.50_of.dat https://www.dropbox.com/s/ixt4vkbmxgab1iu/cen_patches_0.50_of.dat &&\
-    curl -fsSL -o cen_patches_1.00_of.dat https://www.dropbox.com/s/2t5t1sdpshzfhpj/cen_patches_1.00_of.dat
+RUN curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.25_of.dat https://www.dropbox.com/s/7na5qsjzz8yfoer/cen_patches_0.25_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.35_of.dat https://www.dropbox.com/s/k7bj804cyiu474t/cen_patches_0.35_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.50_of.dat https://www.dropbox.com/s/ixt4vkbmxgab1iu/cen_patches_0.50_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_1.00_of.dat https://www.dropbox.com/s/2t5t1sdpshzfhpj/cen_patches_1.00_of.dat
 
 ## ==================== Build-time dependency libs ======================
 ## This will build and install opencv and dlib into an additional dummy
@@ -74,7 +74,7 @@ RUN apt-get \
 ##        llvm clang-3.7 libc++-dev libc++abi-dev  \
 ## ==================== Building dlib ===========================
 
-RUN curl http://dlib.net/files/dlib-19.13.tar.bz2 -LO &&\
+RUN curl -fSL --retry 20 --retry-delay 5 --connect-timeout 60 http://dlib.net/files/dlib-19.13.tar.bz2 -O &&\
     tar xf dlib-19.13.tar.bz2 && \
     rm dlib-19.13.tar.bz2 &&\
     mv dlib-19.13 dlib &&\
@@ -89,7 +89,7 @@ RUN curl http://dlib.net/files/dlib-19.13.tar.bz2 -LO &&\
 ## ==================== Building OpenCV ======================
 ENV OPENCV_VERSION=4.1.0
 
-RUN curl https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz -LO &&\
+RUN curl -fSL --retry 20 --retry-delay 5 --connect-timeout 60 https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz -O &&\
     tar xf ${OPENCV_VERSION}.tar.gz && \
     rm ${OPENCV_VERSION}.tar.gz &&\
     mv opencv-${OPENCV_VERSION} opencv && \

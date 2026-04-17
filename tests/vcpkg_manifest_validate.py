@@ -100,6 +100,15 @@ def validate_find_openblas(repo: Path) -> None:
     )
 
 
+def validate_no_vendor_findblas(repo: Path) -> None:
+    """A vendored FindBLAS in CMAKE_MODULE_PATH shadows CMake's FindBLAS; vcpkg dlib needs BLAS::BLAS (CMake 3.18+)."""
+    legacy = repo / "cmake" / "modules" / "FindBLAS.cmake"
+    assert not legacy.is_file(), (
+        "Remove cmake/modules/FindBLAS.cmake — it shadows CMake's FindBLAS and breaks "
+        "find_dependency(BLAS) for vcpkg dlib (BLAS::BLAS not defined)."
+    )
+
+
 def _cmake_semver() -> tuple[int, int, int] | None:
     exe = shutil.which("cmake")
     if not exe:
@@ -142,6 +151,7 @@ def main() -> int:
     validate_vcpkg(repo)
     validate_cmake_presets(repo)
     validate_find_openblas(repo)
+    validate_no_vendor_findblas(repo)
     validate_cmake_presets_cli(repo)
     print("vcpkg_manifest_validate: OK")
     return 0

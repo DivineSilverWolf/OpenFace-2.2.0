@@ -86,6 +86,10 @@ cmake -S . -B build/manual \
 cmake --build build/manual
 ```
 
+## BLAS / LAPACK and dlib (vcpkg + MSVC)
+
+Do **not** put a custom **`FindBLAS.cmake`** ahead of CMake’s built-in module on `CMAKE_MODULE_PATH`. A legacy vendor copy breaks **`find_dependency(BLAS)`** inside vcpkg’s **`dlibConfig.cmake`** (CMake’s `FindBLAS` creates **`BLAS::BLAS`** since 3.18; without it, configure fails with *target "BLAS::BLAS" was not found*). This repo relies on CMake’s stock **`FindBLAS`** / **`FindLAPACK`** for dlib and for **`OpenFaceConfig.cmake.in`**.
+
 ## OpenCV components
 
 `CMakeLists.txt` requests: `core`, `imgproc`, `calib3d`, `highgui`, `objdetect`. The manifest enables **`opencv4`** with **default port features** (including `calib3d`, `highgui`, Windows backends such as `win32ui` / `msmf` where applicable) **plus** explicit **`ffmpeg`** and image codecs (`jpeg`, `png`, `tiff`, `webp`). Do **not** set `"default-features": false` on `opencv4` unless you also re-enable every component `find_package(OpenCV … COMPONENTS …)` needs. Adjust **`vcpkg.json`** only if you intentionally need extra OpenCV features (keeping **`lib/local/**`** unchanged).

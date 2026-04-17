@@ -1,0 +1,3 @@
+frame,face_id,timestamp,confidence,success
+0,0,0.100,0.9,1
+1,0,0.050,0.9,1

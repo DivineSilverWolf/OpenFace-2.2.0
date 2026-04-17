@@ -1,0 +1,11 @@
+[project]
+name = "openface-lsl-streamer"
+version = "0.1.0"
+description = "Post-hoc Lab Streaming Layer replay from OpenFace FeatureExtraction CSV"
+requires-python = ">=3.9"
+dependencies = [
+  "pylsl>=1.16.0,<2",
+]
+
+# Install deps: pip install -r tools/lsl_streamer/requirements.txt
+# Run from repository root: python -m tools.lsl_streamer --help

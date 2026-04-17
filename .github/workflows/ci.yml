@@ -20,6 +20,14 @@ jobs:
       - name: Unit tests (smoke compare of_details path sanitize)
         run: python3 -m unittest discover -s tests -p "test_compare_smoke*.py" -v
 
+      - name: Unit tests (LSL streamer; no liblsl required)
+        run: python3 -m unittest discover -s tests -p "test_lsl_streamer*.py" -v
+
+      - name: Unit tests (of2bids BIDS derivatives export)
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python3 -m unittest tests.test_of2bids -v
+
   docker-smoke:
     name: Docker smoke gate
     runs-on: ubuntu-latest

@@ -1,0 +1,13 @@
+Input:/root/openface-data/photo_4_2026-04-13_02-55-53.jpg
+Input full path:/root/openface-data/photo_4_2026-04-13_02-55-53.jpg
+Camera parameters:1000.52,1000.52,640,480.5
+Output HOG:photo_4_2026-04-13_02-55-53.hog
+Output image:photo_4_2026-04-13_02-55-53.jpg
+Output aligned directory:photo_4_2026-04-13_02-55-53_aligned
+Output csv:photo_4_2026-04-13_02-55-53.csv
+Gaze: 1
+AUs: 1
+Landmarks 2D: 1
+Landmarks 3D: 1
+Pose: 1
+Shape parameters: 1

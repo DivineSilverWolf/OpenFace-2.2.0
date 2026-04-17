@@ -1,5 +1,7 @@
 # Native build (vcpkg + CMake Presets) vs Docker
 
+**Windows: скрипты скачивания + логи для диплома:** [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md).
+
 OpenFace historically used PowerShell helpers to download OpenCV and FFmpeg DLLs on Windows. For a more **declarative** dependency story (useful for thesis write-ups and reproducible dev machines), this repository includes:
 
 - **`vcpkg.json`** — manifest-mode pins for OpenCV 4, Boost (filesystem + system), OpenBLAS, and dlib, aligned with the top-level `CMakeLists.txt` (`find_package` calls).
@@ -19,6 +21,14 @@ Microsoft documents vcpkg + CMake integration and preset-based workflows in the 
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"
 ```
+
+If you cloned vcpkg with **`git clone --depth 1`**, the commit in **`vcpkg.json` → `builtin-baseline`** is not in the object database until you fetch it. Without that, configure fails with errors about **`versions/baseline.json`** and `git show`. Fix:
+
+```bash
+git -C "$VCPKG_ROOT" fetch origin "$(jq -r '."builtin-baseline"' vcpkg.json)"
+```
+
+(PowerShell: read `builtin-baseline` from `vcpkg.json`, then `git -C $env:VCPKG_ROOT fetch origin <sha>`.) The GitHub Actions **Windows native vcpkg proof** workflow does this fetch automatically after the shallow clone.
 
 On Windows PowerShell:
 

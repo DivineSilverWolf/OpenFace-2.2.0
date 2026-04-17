@@ -88,7 +88,7 @@ cmake --build build/manual
 
 ## OpenCV components
 
-`CMakeLists.txt` requests: `core`, `imgproc`, `calib3d`, `highgui`, `objdetect`. The manifest enables **`opencv4`** with **`ffmpeg`** plus common image codecs (`jpeg`, `png`, `tiff`, `webp`). Adjust **`vcpkg.json`** only if you intentionally need extra OpenCV features (keeping **`lib/local/**`** unchanged).
+`CMakeLists.txt` requests: `core`, `imgproc`, `calib3d`, `highgui`, `objdetect`. The manifest enables **`opencv4`** with **default port features** (including `calib3d`, `highgui`, Windows backends such as `win32ui` / `msmf` where applicable) **plus** explicit **`ffmpeg`** and image codecs (`jpeg`, `png`, `tiff`, `webp`). Do **not** set `"default-features": false` on `opencv4` unless you also re-enable every component `find_package(OpenCV … COMPONENTS …)` needs. Adjust **`vcpkg.json`** only if you intentionally need extra OpenCV features (keeping **`lib/local/**`** unchanged).
 
 ## Regression after a native rebuild
 

@@ -57,6 +57,10 @@ def validate_vcpkg(repo: Path) -> None:
         None,
     )
     assert isinstance(opencv, dict), "opencv4 entry must be an object"
+    assert opencv.get("default-features") is not False, (
+        'opencv4 must not set "default-features": false (drops calib3d/highgui/objdetect; '
+        "breaks find_package(OpenCV COMPONENTS …) in CMakeLists.txt)"
+    )
     feats = opencv.get("features")
     assert isinstance(feats, list) and "ffmpeg" in feats, "opencv4 must list ffmpeg in features"
 

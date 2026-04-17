@@ -7,7 +7,6 @@
   "dependencies": [
     {
       "name": "opencv4",
-      "default-features": false,
       "features": ["ffmpeg", "jpeg", "png", "tiff", "webp"]
     },
     "boost-filesystem",

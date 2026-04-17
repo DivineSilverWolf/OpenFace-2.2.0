@@ -66,6 +66,8 @@ Keeping **`*.csv`** in `baseline_manifest_ci.json` would therefore mean either *
 
 **Current CI contract:** `tools/regression/baseline_manifest_ci.json` lists **`**/*_of_details.txt` only** — CI still enforces a **numeric regression** on those summary files, which has been stable across runners, while the full **`*.csv` (+ `.hog` if desired)** regression remains **local**: `smoke_test/baseline_manifest.json`, `./tools/run_smoke_compare_local_baseline.sh`, and/or `smoke_test/baseline_output_local/` (see [Dual baseline](#dual-baseline-ci-vs-local-machine)).
 
+**`*_of_details.txt` path lines (tolerant mode):** the first lines contain absolute `Input:` / `Input full path:` values. A git baseline captured on GitHub (`/home/runner/...`) will not byte-match a laptop or WSL run (`/mnt/c/...`), and the numeric-token stream used to include **different counts** of digits embedded in those paths. In **tolerant** mode, `tools/regression/compare_smoke_outputs.py` **replaces each such line with the same prefix plus only the path basename** before extracting numbers, so local Docker smoke can compare cleanly against the committed CI baseline. **`strict` mode is unchanged** (full-file SHA256), so path-dependent baselines still differ across machines in strict mode by design.
+
 A baseline captured on a **different** machine than the one that produced `baseline_output/` can still fail locally on CSV strict/tolerant checks; refresh the committed baseline from a GA artifact when you intentionally change outputs (see below).
 
 **Preferred refresh when CI compare fails but the pipeline is correct:** treat the GitHub-hosted runner as the source of truth for the committed baseline.
@@ -95,6 +97,10 @@ export MANIFEST="$(pwd)/tools/regression/baseline_manifest_ci.json"
 ```
 
    A pass on your machine is not guaranteed after a CI-only baseline refresh (your Docker host may still differ slightly), but **GitHub Actions** should go green once the baseline matches the runner that produced the artifact.
+
+## Native toolchain (vcpkg / MSVC) vs Docker baseline
+
+If you rebuild OpenFace **natively** on Windows with **vcpkg** (see [NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md)), treat regression the same way as after any compiler/OpenCV change: run smoke, then compare with **`ABS_TOL`** and refresh **`baseline_output_local/`** (or the git baseline if you intentionally adopt new golden numbers). Dense **`*.csv`** may drift slightly while **`*_of_details.txt`** stays within tolerance; **`compare_smoke_outputs.py`** compares CSVs as **numeric token streams** (not yet column-keyed by header). For **`*_of_details.txt`**, tolerant mode also **normalizes `Input:` / `Input full path:`** to basename-only so CI vs WSL paths do not false-fail the gate (see note under [CI-aligned baseline](#ci-aligned-baseline-ubuntu-latest)).
 
 ## What happens before compare (important)
 

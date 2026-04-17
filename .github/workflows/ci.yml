@@ -7,6 +7,19 @@ on:
   pull_request:
 
 jobs:
+  native-manifest-presets:
+    name: vcpkg manifest + CMake presets (static)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate vcpkg.json / CMakePresets.json / FindOpenBLAS + cmake --list-presets
+        run: python3 tests/vcpkg_manifest_validate.py
+
+      - name: Unit tests (smoke compare of_details path sanitize)
+        run: python3 -m unittest discover -s tests -p "test_compare_smoke*.py" -v
+
   docker-smoke:
     name: Docker smoke gate
     runs-on: ubuntu-latest

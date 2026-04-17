@@ -9,7 +9,7 @@ import math
 import re
 import sys
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 SUPPORTED_EXTENSIONS = {".csv", ".hog"}
@@ -82,9 +82,43 @@ def parse_numeric_tokens(text: str) -> List[float]:
     return [float(match.group(0)) for match in NUMBER_RE.finditer(text)]
 
 
+# Longer prefix first so we never treat "Input full path:" as "Input:".
+_OF_DETAILS_INPUT_PREFIXES: Tuple[str, ...] = ("Input full path:", "Input:")
+
+
+def sanitize_of_details_text(text: str) -> str:
+    """Strip machine-specific directories from *_of_details.txt path lines.
+
+    OpenFace writes absolute paths on the first lines; GitHub Actions vs WSL vs
+    local checkouts differ in length and digit-rich segments (e.g. OpenFace-2.2.0
+    repeated in a runner workdir). Tolerant numeric compare should not treat those
+    path digits as part of the regression signal.
+    """
+    out: List[str] = []
+    for raw in text.splitlines():
+        line = raw.rstrip("\r")
+        new_line = line
+        for prefix in _OF_DETAILS_INPUT_PREFIXES:
+            if line.startswith(prefix):
+                remainder = line[len(prefix) :].strip().strip('"')
+                if remainder:
+                    posix = remainder.replace("\\", "/")
+                    basename = PurePosixPath(posix).name
+                else:
+                    basename = ""
+                new_line = prefix + basename
+                break
+        out.append(new_line)
+    return "\n".join(out)
+
+
 def compare_tolerant_text(actual: Path, baseline: Path, abs_tol: float) -> Tuple[bool, str]:
     actual_text = actual.read_text(encoding="utf-8", errors="replace")
     baseline_text = baseline.read_text(encoding="utf-8", errors="replace")
+
+    if actual.name.endswith(SUPPORTED_SUFFIX) and baseline.name.endswith(SUPPORTED_SUFFIX):
+        actual_text = sanitize_of_details_text(actual_text)
+        baseline_text = sanitize_of_details_text(baseline_text)
 
     actual_numbers = parse_numeric_tokens(actual_text)
     baseline_numbers = parse_numeric_tokens(baseline_text)

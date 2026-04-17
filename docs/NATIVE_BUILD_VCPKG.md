@@ -93,6 +93,23 @@ The compare tool **`tools/regression/compare_smoke_outputs.py`** already walks C
 
 If you **intentionally** upgrade vcpkg baseline or OpenCV and accept new numbers, refresh the appropriate baseline using `tools/regression/sync_smoke_baseline_git.sh` (git baseline) or bootstrap scripts documented in [BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md).
 
+## GitHub Actions proof build (Windows + vcpkg)
+
+A full native configure/build (OpenCV via vcpkg) is **slow** and is **not** part of the default Linux Docker CI.
+
+**When it runs**
+
+- **Automatically** on **push** to branch **`reengineering`** when any of these change: `vcpkg.json`, `CMakePresets.json`, `cmake/**`, `CMakeLists.txt`, or `.github/workflows/windows-native-vcpkg-proof.yml`.
+- **Manually** any time: **Actions** → **Windows native vcpkg proof** → **Run workflow** (`workflow_dispatch`).
+
+**Steps**
+
+1. Open **Actions** → workflow **Windows native vcpkg proof** (`.github/workflows/windows-native-vcpkg-proof.yml`) to see runs (or trigger manually).
+2. The job clones vcpkg, sets `VCPKG_ROOT`, runs `cmake --preset windows-msvc-vcpkg` and `cmake --build --preset windows-msvc-vcpkg-release`.
+3. On success, download the artifact **`windows-vcpkg-proof`** (contains `CMakeCache.txt` and `bin/` with built executables when the link step completes).
+
+Timeout is set to **360 minutes** for the first-time dependency build.
+
 ## Baseline pin (`builtin-baseline`)
 
 `vcpkg.json` sets **`builtin-baseline`** to a tagged vcpkg registry commit (see `vcpkg.json` in the repo). To move to a newer registry snapshot, follow upstream vcpkg guidance (`vcpkg x-update-baseline`, etc.) and re-run smoke regression.

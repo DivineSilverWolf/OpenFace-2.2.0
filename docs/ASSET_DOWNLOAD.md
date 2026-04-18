@@ -1,6 +1,6 @@
 # Downloading OpenFace Windows assets (models + OpenCV DLLs)
 
-**Чеклист проверок на Windows (диплом / реинжиниринг):** [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md).
+**Чеклист проверок на Windows (диплом / реинжиниринг):** [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md). Карта всех тестов: **[tests/README.md](../tests/README.md)**.
 
 The repository root scripts **`download_models.ps1`** and **`download_libraries.ps1`** fetch large binaries that are not stored in git. They use **`Invoke-WebRequest`** with **retries**, **timeouts**, and **progress-style logging**.
 

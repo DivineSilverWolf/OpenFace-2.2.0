@@ -46,3 +46,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_inte
 ## Cleanup
 
 Delete `workdir/` manually, or run the script again (it removes `workdir` before each run).
+
+## Logs for a thesis / report
+
+Redirect console output to the repo-root **`log/`** directory (gitignored except `log/README.md`); see **[WINDOWS_VERIFICATION.md](../../docs/WINDOWS_VERIFICATION.md)** for `Tee-Object` examples and **[tests/README.md](../README.md)** for the full test map.

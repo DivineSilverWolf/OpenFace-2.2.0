@@ -26,6 +26,10 @@ OpenFace was originally developed by Tadas Baltrušaitis in collaboration with C
 - **[docs/INTEGRATION_LSL_BIDS.md](docs/INTEGRATION_LSL_BIDS.md)** — one time model, end-to-end commands (Windows + Unix).
 - **[docs/LSL_OPENFACE.md](docs/LSL_OPENFACE.md)** — post-hoc CSV → Lab Streaming Layer (Mode A).
 - **[docs/BIDS_OPENFACE_DERIVATIVES.md](docs/BIDS_OPENFACE_DERIVATIVES.md)** — OpenFace → BIDS `derivatives/openface/`.
+- **[docs/WINDOWS_VERIFICATION.md](docs/WINDOWS_VERIFICATION.md)** — Windows checklist (PowerShell asset tests, `log/` for captures).
+- **[docs/NATIVE_BUILD_VCPKG.md](docs/NATIVE_BUILD_VCPKG.md)** — vcpkg + CMake presets (incl. GitHub Actions **Windows native vcpkg proof**).
+- **[docs/BASELINE_AND_REGRESSION.md](docs/BASELINE_AND_REGRESSION.md)** — Docker smoke baseline / regression gates.
+- **[tests/README.md](tests/README.md)** — index of automated tests and manual PowerShell suites.
 
 ## Functionality
 

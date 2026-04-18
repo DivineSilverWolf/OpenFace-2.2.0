@@ -1,6 +1,6 @@
 # Windows 11 + WSL2 smoke/regression quick setup
 
-For **native Windows builds** (declarative deps via vcpkg + CMake presets, without the historical DLL download scripts), see [NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md). The flow below is the **Docker** path (same environment as CI smoke).
+For **native Windows builds** (declarative deps via vcpkg + CMake presets, without the historical DLL download scripts), see [NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md). **PowerShell** checks for `download_*.ps1` (parse / integration) and saving logs under **`log/`**: [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md). The flow below is the **Docker** path (same environment as CI smoke).
 
 Use these commands from **WSL bash** in the repo root so `DATA_MOUNT` stays a Linux path that Docker accepts.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static checks for vcpkg manifest, CMakePresets, and FindOpenBLAS guardrails.
+"""Static checks for vcpkg manifest, CMakePresets, FindOpenBLAS, log/, and related guardrails.
 
 Run from repo root: python3 tests/vcpkg_manifest_validate.py
 Used in CI (no vcpkg install required).
@@ -109,6 +109,15 @@ def validate_no_vendor_findblas(repo: Path) -> None:
     )
 
 
+def validate_log_directory(repo: Path) -> None:
+    """log/ holds local thesis/PS logs; README is tracked, other files must stay gitignored."""
+    readme = repo / "log" / "README.md"
+    assert readme.is_file(), "log/README.md must exist (placeholder for tracked log/ directory)"
+    text = (repo / ".gitignore").read_text(encoding="utf-8", errors="replace")
+    assert "/log/*" in text, ".gitignore must contain /log/* so generated logs are not committed"
+    assert "!/log/README.md" in text, ".gitignore must contain !/log/README.md to keep log/README.md in git"
+
+
 def _cmake_semver() -> tuple[int, int, int] | None:
     exe = shutil.which("cmake")
     if not exe:
@@ -152,6 +161,7 @@ def main() -> int:
     validate_cmake_presets(repo)
     validate_find_openblas(repo)
     validate_no_vendor_findblas(repo)
+    validate_log_directory(repo)
     validate_cmake_presets_cli(repo)
     print("vcpkg_manifest_validate: OK")
     return 0

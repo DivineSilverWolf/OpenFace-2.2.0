@@ -55,3 +55,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_inte
 ## 3. Связь с Linux CI
 
 Docker smoke и сравнение с baseline по-прежнему в **[BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md)** и `.github/workflows/ci.yml` — это **другой** контур (Linux-образ), не заменяет проверки из пунктов 1–2.
+
+Полная карта автоматических тестов и скриптов: **[tests/README.md](../tests/README.md)**.

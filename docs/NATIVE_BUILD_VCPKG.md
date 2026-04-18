@@ -46,7 +46,7 @@ From the repo root (CMake **3.21+** must be on `PATH` for the second part; other
 python3 tests/vcpkg_manifest_validate.py
 ```
 
-This checks `vcpkg.json`, `CMakePresets.json`, and `FindOpenBLAS.cmake` guardrails, and runs `cmake --list-presets` when CMake is new enough.
+This checks `vcpkg.json`, `CMakePresets.json`, `FindOpenBLAS.cmake` guardrails, **`log/`** vs `.gitignore`, absence of a vendored **`FindBLAS.cmake`**, and runs `cmake --list-presets` when CMake is new enough. Full test map: **[tests/README.md](../tests/README.md)**.
 
 ## Configure and build (presets)
 

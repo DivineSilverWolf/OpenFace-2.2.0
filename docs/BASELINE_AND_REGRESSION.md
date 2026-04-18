@@ -2,6 +2,8 @@
 
 This document describes a reproducible smoke regression workflow from zero.
 
+**See also:** [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md) (PowerShell asset tests, `log/` for thesis), [NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md) (Windows native CMake + vcpkg), [tests/README.md](../tests/README.md) (test index).
+
 ## Roles of directories
 
 - `smoke_test/data/` - source inputs for smoke (images/videos).

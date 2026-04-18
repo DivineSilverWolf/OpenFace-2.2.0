@@ -36,14 +36,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_inte
 
 ### Лог для приложения к диплому
 
-Сохраните вывод в файл (пример):
+Каталог **`log/`** в корне репозитория: в git попадает только **`log/README.md`**; всё остальное в `log/` в **`.gitignore`** — пишите логи туда, чтобы не засорять корень и случайно не закоммитить вывод.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_parse.tests.ps1 2>&1 | Tee-Object -FilePath thesis_parse_log.txt
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_integration\Run-DownloadAssetsIntegration.ps1 2>&1 | Tee-Object -FilePath thesis_integration_log.txt
+New-Item -ItemType Directory -Force -Path .\log | Out-Null
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_parse.tests.ps1 2>&1 | Tee-Object -FilePath .\log\parse_tests.log
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_integration\Run-DownloadAssetsIntegration.ps1 2>&1 | Tee-Object -FilePath .\log\integration_download.log
 ```
 
-Файлы **`thesis_*_log.txt`** в git не коммитьте (локальные артефакты).
+Имена `parse_tests.log` / `integration_download.log` можно заменить своими; для диплома приложите файлы из **`log/`** как есть (в git они не должны попадать).
 
 ## 2. Нативная сборка Windows + vcpkg (CMake Presets)
 

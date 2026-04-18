@@ -130,3 +130,7 @@ smoke_test/output/**/*_of_details.txt
 # Python bytecode (repo tooling / tests)
 **/__pycache__/
 *.py[cod]
+
+# Local logs (thesis, PowerShell test captures); keep log/README.md tracked
+/log/*
+!/log/README.md

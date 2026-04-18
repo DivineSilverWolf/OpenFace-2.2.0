@@ -19,6 +19,7 @@ class TestWindowsNativeVcpkgProofWorkflow(unittest.TestCase):
         self.assertIn("cmake --build --preset windows-msvc-vcpkg-release", text)
         self.assertIn("vcpkg.json", text)
         self.assertIn("CMakePresets.json", text)
+        self.assertIn("lib/local/**/CMakeLists.txt", text)
         # Shallow vcpkg clone must fetch builtin-baseline or manifest install breaks (git show baseline.json).
         self.assertIn("git -C $vp fetch origin $baseline", text)
 

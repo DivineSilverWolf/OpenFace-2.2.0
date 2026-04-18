@@ -13,6 +13,7 @@ on:
       - "CMakePresets.json"
       - "cmake/**"
       - "CMakeLists.txt"
+      - "lib/local/**/CMakeLists.txt"
       - ".github/workflows/windows-native-vcpkg-proof.yml"
 
 jobs:

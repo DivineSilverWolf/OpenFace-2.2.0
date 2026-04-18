@@ -35,13 +35,13 @@ target_include_directories(FaceAnalyser PUBLIC
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/OpenFace>)
 
 target_include_directories(FaceAnalyser PRIVATE ${FACEANALYSER_SOURCE_DIR}/include)
-target_include_directories(FaceAnalyser PUBLIC ${OpenCV_INCLUDE_DIRS})
+target_include_directories(FaceAnalyser PUBLIC $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>)
 
 target_link_libraries(FaceAnalyser PUBLIC ${OpenCV_LIBS} ${OpenBLAS_LIB})
 target_link_libraries(FaceAnalyser PUBLIC dlib::dlib)
 
 if(${Boost_FOUND})
-	target_include_directories(FaceAnalyser PUBLIC ${Boost_INCLUDE_DIRS})
+	target_include_directories(FaceAnalyser PUBLIC $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>)
 	target_link_libraries(FaceAnalyser PUBLIC ${Boost_LIBRARIES})
 else()
 	target_link_libraries(FaceAnalyser PUBLIC stdc++fs)

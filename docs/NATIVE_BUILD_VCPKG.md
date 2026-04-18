@@ -113,7 +113,7 @@ A full native configure/build (OpenCV via vcpkg) is **slow** and is **not** part
 
 **When it runs**
 
-- **Automatically** on **push** to branch **`reengineering`** when any of these change: `vcpkg.json`, `CMakePresets.json`, `cmake/**`, `CMakeLists.txt`, or `.github/workflows/windows-native-vcpkg-proof.yml`.
+- **Automatically** on **push** to branch **`reengineering`** when any of these change: `vcpkg.json`, `CMakePresets.json`, `cmake/**`, top-level `CMakeLists.txt`, **`lib/local/**/CMakeLists.txt`** (subproject build wiring), or `.github/workflows/windows-native-vcpkg-proof.yml`.
 - **Manually** any time: **Actions** → **Windows native vcpkg proof** → **Run workflow** (`workflow_dispatch`).
 
 **Steps**

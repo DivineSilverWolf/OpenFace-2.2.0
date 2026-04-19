@@ -50,10 +50,33 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\download_assets_inte
 
 Локально: см. **[NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md)** (`cmake --preset windows-msvc-vcpkg`, `VCPKG_ROOT`, первый configure долгий).
 
-На GitHub: workflow **Windows native vcpkg proof** — ручной запуск и автозапуск на `push` в `reengineering` при изменении путей из той же доки.
+На GitHub: workflow **Windows native vcpkg proof** — ручной запуск и автозапуск на `push` в `reengineering` при изменении путей из той же доки. После сборки workflow выполняет **те же Python-проверки**, что и Linux-джоба `native-manifest-presets` в `ci.yml`, затем **нативный смоук** (без Docker) и сравнение с `baseline_manifest_ci.json`.
 
-## 3. Связь с Linux CI
+## 3. Те же тесты, что и Docker CI, но нативно (PowerShell)
 
-Docker smoke и сравнение с baseline по-прежнему в **[BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md)** и `.github/workflows/ci.yml` — это **другой** контур (Linux-образ), не заменяет проверки из пунктов 1–2.
+После успешного `cmake --build --preset windows-msvc-vcpkg-release` и (один раз) **`download_models.ps1`**:
+
+```powershell
+# Все Python-тесты как в Linux CI + смоук + compare (ворота как в ci.yml / baseline_manifest_ci.json)
+.\tools\windows\Run-WindowsNativeTestSuite.ps1 -WithSmoke
+```
+
+Только Python (без бинарников OpenFace):
+
+```powershell
+.\tools\windows\Run-WindowsNativeTestSuite.ps1
+```
+
+Только смоук и сравнение (если Python уже гоняли):
+
+```powershell
+.\tools\windows\Run-NativeSmokeAndCompare.ps1
+```
+
+Кратко про сценарий: **`tools/windows/README.md`**. Полные `*.csv` / `*.hog` на Windows обычно **не совпадают** с Linux baseline; совпадает контракт merge CI — **`*_of_details.txt`** в tolerant-режиме (см. [BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md)).
+
+## 4. Связь с Linux CI
+
+Docker smoke и сравнение с baseline по-прежнему в **[BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md)** и `.github/workflows/ci.yml` — эталонный контур в **Linux-образе**. Нативные скрипты из п. 3 дают **паритет по Python + по смоук-воротам** (`*_of_details.txt`), без поднятия Docker Desktop на Windows.
 
 Полная карта автоматических тестов и скриптов: **[tests/README.md](../tests/README.md)**.

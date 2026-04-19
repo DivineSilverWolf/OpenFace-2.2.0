@@ -55,6 +55,10 @@ When outputs change intentionally (toolchain, model, or OpenFace behavior), rege
 
 The lean files in `smoke_test/baseline_output/` are compared on GitHub Actions using `tools/regression/baseline_manifest_ci.json` and tolerant mode (see `.github/workflows/ci.yml`).
 
+### Windows native (MSVC + vcpkg)
+
+The **Windows native vcpkg proof** workflow (`.github/workflows/windows-native-vcpkg-proof.yml`) runs the **same Python static/unit checks** as the Linux job `native-manifest-presets`, then **native** `FaceLandmarkImg` / `FeatureExtraction` on `smoke_test/data/` and the **same** `compare_smoke_outputs.py` invocation with **`baseline_manifest_ci.json`** (no Docker). Dense `*.csv` / `*.hog` still **differ vs the Linux baseline** on Windows; the **contract** is the same as merge CI: summary `*_of_details.txt` within **`ABS_TOL`**. Entry points: `tools/windows/Run-NativeSmokeAndCompare.ps1` and `tools/windows/Run-WindowsNativeTestSuite.ps1` (see [NATIVE_BUILD_VCPKG.md](NATIVE_BUILD_VCPKG.md), [WINDOWS_VERIFICATION.md](WINDOWS_VERIFICATION.md)).
+
 ### Why `*.csv` was removed from the GitHub Actions compare
 
 The Docker smoke job **already proves** that the image builds, the container starts, and OpenFace runs end-to-end on `smoke_test/data/` (images + short videos). The fragile part was the **next** step: treating dense **`*.csv`** as a byte-stable or `1e-5`-stable contract **across different machines in the `ubuntu-latest` pool**.

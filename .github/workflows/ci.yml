@@ -1,5 +1,6 @@
 # Docker smoke gate: build image, start OpenFace container, run smoke + regression compare.
 # Expects a lean tracked baseline under smoke_test/baseline_output/ (see docs/BASELINE_AND_REGRESSION.md).
+# Windows MSVC + vcpkg parity (Python + native smoke + same manifest compare, no Docker): windows-native-vcpkg-proof.yml.
 name: CI
 
 on:

@@ -98,7 +98,28 @@ Do **not** put a custom **`FindBLAS.cmake`** ahead of CMake’s built-in module 
 
 Changing the OpenCV / BLAS / compiler stack can produce **small numeric drift** in dense outputs (especially `*.csv`), while summary `*_of_details.txt` may still match within tolerance.
 
-1. Run smoke against the same inputs as CI: `./smoke_test/run_smoke.sh` (from WSL/Linux or a shell where your native binaries and `DATA_MOUNT` are set up).
+### Windows (native exes, same inputs and CI manifest as Docker CI)
+
+From the **repository root** in PowerShell, after `cmake --build --preset windows-msvc-vcpkg-release` and **`download_models.ps1`** (CEN `*.dat`):
+
+```powershell
+# Python checks (same as Linux CI job native-manifest-presets) + native smoke + compare (CI manifest)
+.\tools\windows\Run-WindowsNativeTestSuite.ps1 -WithSmoke
+```
+
+Or smoke + compare only (if Python was already run):
+
+```powershell
+.\tools\windows\Run-NativeSmokeAndCompare.ps1
+```
+
+These scripts create temporary **junctions** at the repo root (`model`, `classifiers`, `AU_predictors`) so native binaries resolve the same relative paths as in the Linux container, then remove them. Defaults for **`MODE`**, **`ABS_TOL`**, **`MANIFEST`** match `.github/workflows/ci.yml` / `.github/workflows/windows-native-vcpkg-proof.yml`.
+
+If `smoke_test/output/` is **tracked** in your branch, restore it after experiments: `git checkout HEAD -- smoke_test/output`.
+
+### Linux / WSL (Docker, reference CI)
+
+1. Run smoke against the same inputs as CI: `./smoke_test/run_smoke.sh` (with the `openface` container and `DATA_MOUNT` as in [SETUP_WINDOWS11_WSL2.md](SETUP_WINDOWS11_WSL2.md)).
 2. Compare outputs:
    - **Same gate as CI:** `./tools/run_smoke_and_compare.sh` (uses `baseline_output/` and the CI-oriented manifest by default in workflow; locally mirror `.github/workflows/ci.yml` env for `MANIFEST` / `ABS_TOL` if you want an exact match).
    - **Full tolerant regression on your machine:** `./tools/run_smoke_compare_local_baseline.sh` and/or refresh `smoke_test/baseline_output_local/` — see [BASELINE_AND_REGRESSION.md](BASELINE_AND_REGRESSION.md).
@@ -113,14 +134,15 @@ A full native configure/build (OpenCV via vcpkg) is **slow** and is **not** part
 
 **When it runs**
 
-- **Automatically** on **push** to branch **`reengineering`** when any of these change: `vcpkg.json`, `CMakePresets.json`, `cmake/**`, top-level `CMakeLists.txt`, **`lib/local/**/CMakeLists.txt`** (subproject build wiring), or `.github/workflows/windows-native-vcpkg-proof.yml`.
+- **Automatically** on **push** to branch **`reengineering`** when any of these change: `vcpkg.json`, `CMakePresets.json`, `cmake/**`, top-level `CMakeLists.txt`, **`lib/local/**/CMakeLists.txt`** (subproject build wiring), `tools/windows/**`, `tests/**`, `tools/regression/compare_smoke_outputs.py`, `tools/regression/baseline_manifest_ci.json`, `smoke_test/baseline_output/**`, `smoke_test/data/**`, or `.github/workflows/windows-native-vcpkg-proof.yml`.
 - **Manually** any time: **Actions** → **Windows native vcpkg proof** → **Run workflow** (`workflow_dispatch`).
 
 **Steps**
 
 1. Open **Actions** → workflow **Windows native vcpkg proof** (`.github/workflows/windows-native-vcpkg-proof.yml`) to see runs (or trigger manually).
 2. The job clones vcpkg, sets `VCPKG_ROOT`, runs `cmake --preset windows-msvc-vcpkg` and `cmake --build --preset windows-msvc-vcpkg-release`.
-3. On success, download the artifact **`windows-vcpkg-proof`** (contains `CMakeCache.txt` and `bin/` with built executables when the link step completes).
+3. Then it runs the **same Python checks** as Linux `native-manifest-presets` (`vcpkg_manifest_validate.py` + selected `unittest` modules), **`download_models.ps1`**, and **`Run-NativeSmokeAndCompare.ps1`** (same smoke media + **`baseline_manifest_ci.json`** gate as Docker CI).
+4. On success, download the artifact **`windows-vcpkg-proof`** (contains `CMakeCache.txt` and `bin/` with built executables when the link step completes).
 
 Timeout is set to **360 minutes** for the first-time dependency build.
 

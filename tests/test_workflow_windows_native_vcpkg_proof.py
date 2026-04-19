@@ -22,6 +22,28 @@ class TestWindowsNativeVcpkgProofWorkflow(unittest.TestCase):
         self.assertIn("lib/local/**/CMakeLists.txt", text)
         # Shallow vcpkg clone must fetch builtin-baseline or manifest install breaks (git show baseline.json).
         self.assertIn("git -C $vp fetch origin $baseline", text)
+        # Parity with Linux CI: Python static checks + native smoke (no Docker).
+        self.assertIn("vcpkg_manifest_validate.py", text)
+        self.assertIn('unittest discover -s tests -p "test_workflow*.py"', text)
+        self.assertIn('unittest discover -s tests -p "test_compare_smoke*.py"', text)
+        self.assertIn('unittest discover -s tests -p "test_lsl_streamer*.py"', text)
+        self.assertIn("tests.test_of2bids", text)
+        self.assertIn("download_models.ps1", text)
+        self.assertIn("Run-NativeSmokeAndCompare.ps1", text)
+        self.assertIn("baseline_manifest_ci.json", text)
+
+    def test_windows_native_tooling_scripts_exist(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        win = repo / "tools" / "windows"
+        for name in (
+            "README.md",
+            "Ensure-NativeOpenFaceRepoLayout.ps1",
+            "Remove-NativeOpenFaceRepoLayout.ps1",
+            "Run-NativeSmokeAndCompare.ps1",
+            "Run-WindowsNativeTestSuite.ps1",
+        ):
+            path = win / name
+            self.assertTrue(path.is_file(), f"missing {path}")
 
 
 if __name__ == "__main__":

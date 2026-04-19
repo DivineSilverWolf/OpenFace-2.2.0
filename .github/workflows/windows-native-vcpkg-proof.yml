@@ -15,6 +15,12 @@ on:
       - "CMakeLists.txt"
       - "lib/local/**/CMakeLists.txt"
       - ".github/workflows/windows-native-vcpkg-proof.yml"
+      - "tools/windows/**"
+      - "tests/**"
+      - "tools/regression/compare_smoke_outputs.py"
+      - "tools/regression/baseline_manifest_ci.json"
+      - "smoke_test/baseline_output/**"
+      - "smoke_test/data/**"
 
 jobs:
   windows-msvc-vcpkg:
@@ -53,6 +59,29 @@ jobs:
       - name: Build (Release)
         shell: pwsh
         run: cmake --build --preset windows-msvc-vcpkg-release
+
+      # Same Python checks as Linux job "native-manifest-presets" in ci.yml (no Docker).
+      - name: Python CI-parity (manifest validate + unit tests)
+        shell: pwsh
+        run: |
+          python tests/vcpkg_manifest_validate.py
+          python -m unittest discover -s tests -p "test_workflow*.py" -v
+          python -m unittest discover -s tests -p "test_compare_smoke*.py" -v
+          python -m unittest discover -s tests -p "test_lsl_streamer*.py" -v
+          $env:PYTHONPATH = (Join-Path $env:GITHUB_WORKSPACE "tools")
+          python -m unittest tests.test_of2bids -v
+
+      - name: Download CEN models (native smoke prerequisite)
+        shell: pwsh
+        run: ./download_models.ps1 -MaxRetriesPerUri 5 -TimeoutSec 120
+
+      - name: Native smoke + baseline compare (CI manifest)
+        shell: pwsh
+        env:
+          MODE: tolerant
+          ABS_TOL: "1e-5"
+          MANIFEST: ${{ github.workspace }}/tools/regression/baseline_manifest_ci.json
+        run: ./tools/windows/Run-NativeSmokeAndCompare.ps1 -RepoRoot "${{ github.workspace }}"
 
       - name: List built binaries
         if: success()

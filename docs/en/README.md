@@ -16,6 +16,10 @@ This index groups all documentation topics in English.
 
 - [Smoke Baseline and Regression](BASELINE_AND_REGRESSION.md)
 
+## Experiment tools
+
+- [Sustained eye open/closed transition detection (`Experiment/`)](EXPERIMENT_EYE_TRANSITIONS.md)
+
 ## LSL and BIDS integration
 
 - [OpenFace and Lab Streaming Layer (LSL)](LSL_OPENFACE.md)

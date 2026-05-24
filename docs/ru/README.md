@@ -16,6 +16,10 @@
 
 - [Smoke Baseline and Regression](BASELINE_AND_REGRESSION.md) - политика baseline, CI-контракт и режимы строгого/толерантного сравнения.
 
+## Инструменты Experiment
+
+- [Детекция длительного открытия/закрытия глаз (`Experiment/`)](EXPERIMENT_EYE_TRANSITIONS.md)
+
 ## Интеграция LSL и BIDS
 
 - [OpenFace и Lab Streaming Layer (LSL)](LSL_OPENFACE.md) - потоковая реплей-интеграция CSV в LSL.

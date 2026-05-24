@@ -127,6 +127,9 @@ smoke_test/output/**/*.avi
 smoke_test/output/**/*_aligned/
 smoke_test/output/**/*_of_details.txt
 
+# Local eye open/close experiment at repo root (videos, OpenFace outputs); scripts in tools/experiment/
+/Experiment/
+
 # Python bytecode (repo tooling / tests)
 **/__pycache__/
 *.py[cod]

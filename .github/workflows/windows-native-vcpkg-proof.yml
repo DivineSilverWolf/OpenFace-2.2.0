@@ -1,0 +1,99 @@
+# Proof build: native Windows + vcpkg manifest + CMake preset (MSVC).
+# First configure can take a long time (OpenCV/ffmpeg via vcpkg).
+# Runs: manually (workflow_dispatch) or automatically on push to reengineering when native-build inputs change.
+name: Windows native vcpkg proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - reengineering
+    paths:
+      - "vcpkg.json"
+      - "CMakePresets.json"
+      - "cmake/**"
+      - "CMakeLists.txt"
+      - "lib/local/**/CMakeLists.txt"
+      - ".github/workflows/windows-native-vcpkg-proof.yml"
+      - "tools/windows/**"
+      - "tests/**"
+      - "tools/regression/compare_smoke_outputs.py"
+      - "tools/regression/baseline_manifest_ci.json"
+      - "smoke_test/baseline_output/**"
+      - "smoke_test/data/**"
+
+jobs:
+  windows-msvc-vcpkg:
+    name: cmake preset windows-msvc-vcpkg + Release build
+    runs-on: windows-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Shallow clone alone is not enough: manifest builtin-baseline must exist in .git
+      # or vcpkg fails with "git show <baseline>:versions/baseline.json" (exit 128).
+      - name: Clone and bootstrap vcpkg
+        shell: pwsh
+        run: |
+          $vp = Join-Path $env:RUNNER_TEMP "vcpkg"
+          git clone --depth 1 https://github.com/microsoft/vcpkg $vp
+          $manifest = Join-Path $env:GITHUB_WORKSPACE "vcpkg.json"
+          $baseline = (Get-Content $manifest -Raw | ConvertFrom-Json).'builtin-baseline'
+          if ([string]::IsNullOrWhiteSpace($baseline)) {
+            throw "vcpkg.json must define builtin-baseline (required for manifest mode)."
+          }
+          git -C $vp fetch origin $baseline
+          & "$vp\bootstrap-vcpkg.bat"
+          "VCPKG_ROOT=$vp" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Configure (CMake preset)
+        shell: pwsh
+        run: cmake --preset windows-msvc-vcpkg
+
+      - name: Build (Release)
+        shell: pwsh
+        run: cmake --build --preset windows-msvc-vcpkg-release
+
+      # Same Python checks as Linux job "native-manifest-presets" in ci.yml (no Docker).
+      - name: Python CI-parity (manifest validate + unit tests)
+        shell: pwsh
+        run: |
+          python tests/vcpkg_manifest_validate.py
+          python -m unittest discover -s tests -p "test_workflow*.py" -v
+          python -m unittest discover -s tests -p "test_compare_smoke*.py" -v
+          python -m unittest discover -s tests -p "test_lsl_streamer*.py" -v
+          $env:PYTHONPATH = (Join-Path $env:GITHUB_WORKSPACE "tools")
+          python -m unittest tests.test_of2bids -v
+
+      - name: Download CEN models (native smoke prerequisite)
+        shell: pwsh
+        run: ./download_models.ps1 -MaxRetriesPerUri 5 -TimeoutSec 120
+
+      - name: Native smoke + baseline compare (CI manifest)
+        shell: pwsh
+        env:
+          MODE: tolerant
+          ABS_TOL: "1e-5"
+          MANIFEST: ${{ github.workspace }}/tools/regression/baseline_manifest_ci.json
+        run: ./tools/windows/Run-NativeSmokeAndCompare.ps1 -RepoRoot "${{ github.workspace }}"
+
+      - name: List built binaries
+        if: success()
+        shell: pwsh
+        run: Get-ChildItem -Recurse build/windows-msvc-vcpkg/bin -Filter *.exe -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+
+      - name: Upload proof artifacts (small)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-vcpkg-proof
+          path: |
+            build/windows-msvc-vcpkg/CMakeCache.txt
+            build/windows-msvc-vcpkg/bin/
+          if-no-files-found: warn

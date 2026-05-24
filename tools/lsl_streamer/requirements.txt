@@ -1,0 +1,2 @@
+# Pin for reproducible installs; requires system liblsl (see docs/LSL_OPENFACE.md).
+pylsl>=1.16.0,<2

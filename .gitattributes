@@ -1,0 +1,15 @@
+# Shell scripts must use LF so WSL/Linux/Docker can run them (avoid bash\r shebang).
+smoke_test/*.sh text eol=lf
+tools/*.sh text eol=lf
+tools/**/*.sh text eol=lf
+tools/regression/*.sh text eol=lf
+tools/**/*.ps1 text eol=lf
+tests/*.ps1 text eol=lf
+tests/**/*.ps1 text eol=lf
+download_models.ps1 text eol=lf
+download_libraries.ps1 text eol=lf
+
+# Smoke regression baseline: text must stay LF for strict CI compare on Linux runners.
+smoke_test/baseline_output/**/*.csv text eol=lf
+smoke_test/baseline_output/**/*_of_details.txt text eol=lf
+smoke_test/baseline_output/**/*.hog binary

@@ -1,17 +1,3 @@
-# ==================== Building Model Layer ===========================
-# This is a little trick to improve caching and minimize rebuild time
-# and bandwidth. Note that RUN commands only cache-miss if the prior layers
-# miss, or the dockerfile changes prior to this step.
-# To update these patch files, be sure to run build with --no-cache
-FROM alpine as model_data
-RUN apk --no-cache --update-cache add wget
-WORKDIR /data/patch_experts
-
-RUN wget -q https://www.dropbox.com/s/7na5qsjzz8yfoer/cen_patches_0.25_of.dat &&\
-    wget -q https://www.dropbox.com/s/k7bj804cyiu474t/cen_patches_0.35_of.dat &&\
-    wget -q https://www.dropbox.com/s/ixt4vkbmxgab1iu/cen_patches_0.50_of.dat &&\
-    wget -q https://www.dropbox.com/s/2t5t1sdpshzfhpj/cen_patches_1.00_of.dat
-
 ## ==================== Install Ubuntu Base libs ===========================
 ## This will be our base image for OpenFace, and also the base for the compiler
 ## image. We only need packages which are linked
@@ -23,14 +9,42 @@ LABEL maintainer="Michael McDermott <mikemcdermott23@gmail.com>"
 ARG DEBIAN_FRONTEND=noninteractive
 
 # todo: minimize this even more
-RUN apt-get update -qq &&\
-    apt-get install -qq curl &&\
-    apt-get install -qq --no-install-recommends \
+RUN apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        update -qq &&\
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq curl &&\
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq --no-install-recommends \
         libopenblas-dev liblapack-dev \
         libavcodec-dev libavformat-dev libswscale-dev \
         libtbb2 libtbb-dev libjpeg-dev \
         libpng-dev libtiff-dev &&\
     rm -rf /var/lib/apt/lists/*
+
+# ==================== Building Model Layer ===========================
+# This is a little trick to improve caching and minimize rebuild time
+# and bandwidth. Note that RUN commands only cache-miss if the prior layers
+# miss, or the dockerfile changes prior to this step.
+# To update these patch files, be sure to run build with --no-cache
+#
+# NOTE: Use ubuntu_base + curl (with apt retries) instead of alpine/apk to make
+# CI builds more resilient to transient network/TLS issues on APK mirrors.
+FROM ubuntu_base as model_data
+WORKDIR /data/patch_experts
+
+RUN curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.25_of.dat https://www.dropbox.com/s/7na5qsjzz8yfoer/cen_patches_0.25_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.35_of.dat https://www.dropbox.com/s/k7bj804cyiu474t/cen_patches_0.35_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_0.50_of.dat https://www.dropbox.com/s/ixt4vkbmxgab1iu/cen_patches_0.50_of.dat &&\
+    curl -fsSL --retry 20 --retry-delay 5 --connect-timeout 60 -o cen_patches_1.00_of.dat https://www.dropbox.com/s/2t5t1sdpshzfhpj/cen_patches_1.00_of.dat
 
 ## ==================== Build-time dependency libs ======================
 ## This will build and install opencv and dlib into an additional dummy
@@ -42,7 +56,16 @@ FROM ubuntu_base as cv_deps
 WORKDIR /root/build-dep
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -qq -y \
+RUN apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        update -qq && \
+    apt-get \
+        -o Acquire::Retries=10 \
+        -o Acquire::http::Timeout=60 \
+        -o Acquire::https::Timeout=60 \
+        install -qq -y \
         cmake ninja-build pkg-config build-essential checkinstall\
         g++-8 &&\
     rm -rf /var/lib/apt/lists/* &&\
@@ -51,7 +74,7 @@ RUN apt-get update -qq && apt-get install -qq -y \
 ##        llvm clang-3.7 libc++-dev libc++abi-dev  \
 ## ==================== Building dlib ===========================
 
-RUN curl http://dlib.net/files/dlib-19.13.tar.bz2 -LO &&\
+RUN curl -fSL --retry 20 --retry-delay 5 --connect-timeout 60 http://dlib.net/files/dlib-19.13.tar.bz2 -O &&\
     tar xf dlib-19.13.tar.bz2 && \
     rm dlib-19.13.tar.bz2 &&\
     mv dlib-19.13 dlib &&\
@@ -66,7 +89,7 @@ RUN curl http://dlib.net/files/dlib-19.13.tar.bz2 -LO &&\
 ## ==================== Building OpenCV ======================
 ENV OPENCV_VERSION=4.1.0
 
-RUN curl https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz -LO &&\
+RUN curl -fSL --retry 20 --retry-delay 5 --connect-timeout 60 https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz -O &&\
     tar xf ${OPENCV_VERSION}.tar.gz && \
     rm ${OPENCV_VERSION}.tar.gz &&\
     mv opencv-${OPENCV_VERSION} opencv && \

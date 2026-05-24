@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "openface",
+  "version-string": "2.2.0",
+  "description": "Optional native build dependencies (manifest mode). Algorithm code stays in lib/local; this file only pins third-party libs for CMake.",
+  "builtin-baseline": "c3867e714dd3a51c272826eea77267876517ed99",
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "features": ["ffmpeg", "jpeg", "png", "tiff", "webp"]
+    },
+    "boost-filesystem",
+    "boost-system",
+    "openblas",
+    "dlib"
+  ]
+}

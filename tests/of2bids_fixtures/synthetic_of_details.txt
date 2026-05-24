@@ -1,0 +1,11 @@
+Input:synthetic.mp4
+Input full path:/tmp/synthetic.mp4
+Camera parameters:1000,1000,320,240
+Output csv:synthetic.csv
+Gaze: 0
+AUs: 1
+Landmarks 2D: 0
+Landmarks 3D: 0
+Pose: 1
+Shape parameters: 0
+FPS: 30.0

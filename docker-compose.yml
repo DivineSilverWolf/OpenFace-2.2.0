@@ -19,6 +19,10 @@ services:
       - "${DATA_MOUNT}:${DATA_MOUNT}"
     environment:
       DATA_MOUNT: "${DATA_MOUNT}"
+      # Improve cross-machine reproducibility for smoke outputs (BLAS/OpenMP threading).
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
     command: ["bash"]
 
 ...

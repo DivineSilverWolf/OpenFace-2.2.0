@@ -1,0 +1,70 @@
+# Docker smoke gate: build image, start OpenFace container, run smoke + regression compare.
+# Expects a lean tracked baseline under smoke_test/baseline_output/ (see docs/BASELINE_AND_REGRESSION.md).
+# Windows MSVC + vcpkg parity (Python + native smoke + same manifest compare, no Docker): windows-native-vcpkg-proof.yml.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  native-manifest-presets:
+    name: vcpkg manifest + CMake presets (static)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate vcpkg.json / CMakePresets.json / FindOpenBLAS + cmake --list-presets
+        run: python3 tests/vcpkg_manifest_validate.py
+
+      - name: Unit tests (Windows native vcpkg proof workflow wiring)
+        run: python3 -m unittest discover -s tests -p "test_workflow*.py" -v
+
+      - name: Unit tests (smoke compare of_details path sanitize)
+        run: python3 -m unittest discover -s tests -p "test_compare_smoke*.py" -v
+
+      - name: Unit tests (LSL streamer; no liblsl required)
+        run: python3 -m unittest discover -s tests -p "test_lsl_streamer*.py" -v
+
+      - name: Unit tests (of2bids BIDS derivatives export)
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python3 -m unittest tests.test_of2bids -v
+
+  docker-smoke:
+    name: Docker smoke gate
+    runs-on: ubuntu-latest
+    env:
+      DOCKERUSER: local
+      DOCKERTAG: "2.2.0"
+      DATA_MOUNT: ${{ github.workspace }}/smoke_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make smoke scripts executable
+        run: chmod +x tools/run_smoke_and_compare.sh smoke_test/run_smoke.sh
+
+      - name: Docker Compose build
+        run: DOCKER_BUILDKIT=0 docker compose build
+
+      - name: Docker Compose up (openface)
+        run: docker compose up -d openface
+
+      - name: Smoke + baseline compare
+        env:
+          # Runner pool variance makes dense *.csv floats differ beyond tight tol even with
+          # identical Dockerfiles; CI manifest compares *_of_details.txt only (see baseline_manifest_ci.json).
+          MODE: tolerant
+          ABS_TOL: "1e-5"
+          MANIFEST: ${{ github.workspace }}/tools/regression/baseline_manifest_ci.json
+        run: bash ./tools/run_smoke_and_compare.sh
+
+      - name: Upload smoke output (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-output
+          path: smoke_test/output/
+          if-no-files-found: warn

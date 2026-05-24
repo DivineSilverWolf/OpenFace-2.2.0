@@ -1,0 +1,69 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "vcpkg-common",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "windows-msvc-vcpkg",
+      "inherits": "vcpkg-common",
+      "displayName": "Windows MSVC x64 + vcpkg (manifest)",
+      "description": "Set VCPKG_ROOT to your vcpkg clone. First configure may take a long time while dependencies build.",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-gcc",
+      "inherits": "vcpkg-common",
+      "displayName": "Linux GCC + Ninja + vcpkg",
+      "description": "Native Linux or WSL with GCC. Requires Ninja, build-essential, and VCPKG_ROOT.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "wsl-clang",
+      "inherits": "vcpkg-common",
+      "displayName": "Linux/WSL Clang + Ninja + vcpkg",
+      "description": "Same as linux-gcc but forces clang/clang++. Typical for WSL when LLVM is the preferred toolchain.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-msvc-vcpkg-release",
+      "displayName": "Build Release (windows-msvc-vcpkg)",
+      "configurePreset": "windows-msvc-vcpkg",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-gcc",
+      "displayName": "Build (linux-gcc)",
+      "configurePreset": "linux-gcc"
+    },
+    {
+      "name": "wsl-clang",
+      "displayName": "Build (wsl-clang)",
+      "configurePreset": "wsl-clang"
+    }
+  ]
+}

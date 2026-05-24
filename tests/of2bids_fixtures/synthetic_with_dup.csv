@@ -1,0 +1,4 @@
+frame,face_id,timestamp,confidence,success,AU01_r
+0,0,0.000,0.95,1,0.1
+1,0,0.033,0.96,1,0.2
+2,0,0.033,0.94,1,0.15

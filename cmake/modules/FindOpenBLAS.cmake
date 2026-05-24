@@ -58,7 +58,7 @@ SET(Open_BLAS_INCLUDE_SEARCH_PATHS
 )
 
 SET(Open_BLAS_LIB_SEARCH_PATHS
-        $ENV{OpenBLAS}cd
+        $ENV{OpenBLAS}
         $ENV{OpenBLAS}/lib
         $ENV{OpenBLAS_HOME}
         $ENV{OpenBLAS_HOME}/lib
@@ -74,6 +74,20 @@ SET(Open_BLAS_LIB_SEARCH_PATHS
         /usr/lib
 		/usr/local/opt/openblas/lib
  )
+
+# When using vcpkg (manifest or classic), OpenBLAS is under the triplet prefix.
+# This module uses NO_DEFAULT_PATH below, so explicit prefixes are required.
+if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+  list(INSERT Open_BLAS_INCLUDE_SEARCH_PATHS 0
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include"
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/openblas")
+  list(INSERT Open_BLAS_LIB_SEARCH_PATHS 0
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib")
+  if(WIN32)
+    list(INSERT Open_BLAS_LIB_SEARCH_PATHS 0
+      "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib")
+  endif()
+endif()
 
 FIND_PATH(OpenBLAS_INCLUDE_DIR NAMES f77blas.h PATHS ${Open_BLAS_INCLUDE_SEARCH_PATHS} NO_DEFAULT_PATH)
 FIND_LIBRARY(OpenBLAS_LIB NAMES openblas PATHS ${Open_BLAS_LIB_SEARCH_PATHS}  NO_DEFAULT_PATH)

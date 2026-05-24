@@ -1,0 +1,40 @@
+# Build the same Docker image as CI, run smoke only (no baseline compare),
+# upload smoke_test/output/ so you can refresh smoke_test/baseline_output/ for ubuntu-latest.
+#
+# Manual only (workflow_dispatch): avoids a second full Docker build on every push; use when
+# you need a fresh runner artifact. The workflow file must be on the default branch for the
+# "Run workflow" button to appear in the GitHub UI.
+name: Smoke baseline capture
+
+on:
+  workflow_dispatch:
+
+jobs:
+  capture-smoke-output:
+    name: Capture smoke_test/output on GitHub runner
+    runs-on: ubuntu-latest
+    env:
+      DOCKERUSER: local
+      DOCKERTAG: "2.2.0"
+      DATA_MOUNT: ${{ github.workspace }}/smoke_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make smoke scripts executable
+        run: chmod +x smoke_test/run_smoke.sh
+
+      - name: Docker Compose build
+        run: DOCKER_BUILDKIT=0 docker compose build
+
+      - name: Docker Compose up (openface)
+        run: docker compose up -d openface
+
+      - name: Run smoke (writes smoke_test/output)
+        run: ./smoke_test/run_smoke.sh
+
+      - name: Upload smoke output for baseline refresh
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-output-for-baseline
+          path: smoke_test/output/
